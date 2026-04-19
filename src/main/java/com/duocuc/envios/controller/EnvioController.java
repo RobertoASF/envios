@@ -1,51 +1,65 @@
 package com.duocuc.envios.controller;
 
-import com.duocuc.envios.model.Envio;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import com.duocuc.envios.model.Envio;
+import com.duocuc.envios.service.EnviosService;
+
+import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 
 @RestController
-@RequestMapping("/api/envios")
+@RequestMapping("/envios")
+@CrossOrigin(origins = "*")
 public class EnvioController {
 
-    private final List<Envio> envios = new ArrayList<>();
+    @Autowired
+    private EnviosService enviosService;
 
-    public EnvioController() {
-        envios.add(new Envio(1, "Saco Alimento Premium 15kg", "Roberto Sánchez", "En Tránsito", "Centro de Distribución Macul"));
-        envios.add(new Envio(2, "Arena Sanitaria Gatos 10kg", "John Dow", "Entregado", "Domicilio Cliente"));
-        envios.add(new Envio(3, "Rascador Torre 3 Pisos", "Juan Perez", "Preparando", "Bodega Central"));
-        envios.add(new Envio(4, "Correa 5m", "Lindorfo Vergara", "En Tránsito", "Ruta de reparto 4"));
-        envios.add(new Envio(5, "Cama para perro XL", "Luis Migueles", "Retrasado", "Ruta de reparto 1"));
-        envios.add(new Envio(6, "Juguete hueso Perro", "María Paz", "Entregado", "Domicilio Cliente"));
-        envios.add(new Envio(7, "Fuente de Agua Gatos", "Diego Tapia", "En Tránsito", "Centro de Distribución Buin"));
-        envios.add(new Envio(8, "Antiparasitario Externo", "Nadalina Franco", "Preparando", "Bodega Central"));
-    }
 
     @GetMapping
-    public ResponseEntity<List<Envio>> obtenerTodosLosEnvios() {
+    public ResponseEntity<List<Envio>> getAllEnvios() {
+        List<Envio> envios = enviosService.getAllEnvios();
         return ResponseEntity.ok(envios);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> obtenerEnvioPorId(@PathVariable int id) {
-        for (Envio envio : envios) {
-            if (envio.getId() == id) {
-                return ResponseEntity.ok(envio);
-            }
+    public ResponseEntity<Envio> getEnvioById(@PathVariable Long id) {
+        return enviosService.getEnvioById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Envio> createEnvio(@Valid @RequestBody Envio envio){
+        Envio nuevoEnvio = enviosService.createEnvio(envio);
+        return new ResponseEntity<>(nuevoEnvio, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Envio> updateEnvio(@PathVariable Long id, @Valid @RequestBody Envio envio) {
+        Envio actualizado = enviosService.updateEnvio(id, envio);
+        if (actualizado != null){
+            return ResponseEntity.ok(actualizado);
+        } return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEnvio(@PathVariable Long id) {
+        if (enviosService.getEnvioById(id).isPresent()) {
+            enviosService.deleteEnvio(id);
+            return ResponseEntity.noContent().build();
         }
-
-        Map<String, String> respuestaError = new HashMap<>();
-        respuestaError.put("error", "No existe ningún envío registrado con el ID: " + id);
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuestaError);
+        return ResponseEntity.notFound().build();
     }
 }
