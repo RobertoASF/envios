@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -28,7 +30,7 @@ public class EnvioController {
     @GetMapping
     public ResponseEntity<List<Envio>> getAllEnvios() {
         List<Envio> envios = enviosService.getAllEnvios();
-        log.info("GET /citas");
+        log.info("GET /envios");
         log.info("Retornando todas los envios registrados");
         return ResponseEntity.ok(envios);
     }
@@ -82,5 +84,27 @@ public class EnvioController {
             log.warn("Fallo al eliminar: No se encontró el envío con ID: {}", id);
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/{id}/rastreo")
+    public ResponseEntity<Map<String, String>> rastrearEnvio(@PathVariable Long id) {
+        log.info("Iniciando rastreo detallado para el envio con ID: {}", id);
+
+        return enviosService.getEnvioById(id)
+                .map(envio -> {
+                    log.info("Envío ID: {} encontrado. Estado: {}. Ubicación actual: {}",
+                            id, envio.getEstado(), envio.getUbicacionActual());
+
+                    Map<String, String> rastreo = new HashMap<>();
+                    rastreo.put("id", envio.getId().toString());
+                    rastreo.put("estado", envio.getEstado());
+                    rastreo.put("ubicacionActual", envio.getUbicacionActual());
+
+                    return ResponseEntity.ok(rastreo);
+                })
+                .orElseGet(() -> {
+                    log.warn("No se pudo realizar el rastreo: El envío con ID {}, no existe en la base de datos", id);
+                    return ResponseEntity.notFound().build();
+                });
     }
 }

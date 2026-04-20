@@ -10,7 +10,7 @@ import org.springframework.hateoas.RepresentationModel;
 
 @Entity
 @Table(name = "ENVIO")
-@JsonPropertyOrder({"id", "producto", "destinatario", "estado", "ubicacionActual", "estado"})
+@JsonPropertyOrder({"id", "producto", "destinatario", "estado", "ubicacionActual"})
 public class Envio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
