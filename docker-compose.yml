@@ -1,0 +1,31 @@
+services:
+  citas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: envios-api
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@desarrollofullstack1_tp?TNS_ADMIN=./wallet
+      SPRING_DATASOURCE_USERNAME: fullstack1
+      SPRING_DATASOURCE_PASSWORD: Expx_S6_des_fullstack
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: oracle.jdbc.OracleDriver
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.OracleDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+    restart: unless-stopped
+
+
+
+
+
+
+
+
+
+
+
+
+
+
